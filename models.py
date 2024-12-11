@@ -12,5 +12,5 @@ def reflect_tables():
             '__table__': table
         })
 
-# Llamar a la función de reflección
+# Llamar a la función de reflección se ven todas las tablas[pacientes,medicos,usuarios]
 reflect_tables()
