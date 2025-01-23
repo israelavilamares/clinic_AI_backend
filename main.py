@@ -1,18 +1,18 @@
 from fastapi import FastAPI
-from fastapi import Form, Query
+from fastapi import Form, Query, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException,status,Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Annotated
-from sqlalchemy import text, Table, select, delete
+from sqlalchemy import text, Table, select, delete ,update as sqlalchemy_update
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import NoResultFound
 import uvicorn
 from passwords import  hash_passwords, verify_password # retorna verify un resultado booleano 
 from database import SessionLocal ,Base, engine, metadata, get_db
-from models import reflect_tables, metadata,Cita
+from models import reflect_tables, metadata,Cita,CitaUser,UpdateCitaRequest
 from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
 import logging
@@ -91,6 +91,37 @@ def login(form_data: OAuth2PasswordRequestFormEmail = Depends(), db: Session = D
         )     
     return {"access_token": access_token, "token_type": "bearer", "rol": rol,"id":user.id}
 
+
+@app.put("/citas/", response_model=CitaUser)
+async def updateCita(
+                   id: int = Query(..., description="ID citas"), 
+    request: UpdateCitaRequest = Body(...),
+    db: Session = Depends(get_db)
+):
+    cita = metadata.tables["citas"]
+    print(id)
+
+    # Verificar si la cita existe
+    existing_cita = db.query(cita).filter(cita.c.id == id).first()
+    if not existing_cita:
+        raise HTTPException(status_code=404, detail="Cita no encontrada")
+
+    # Obtener los datos a actualizar
+    update_data = request.model_dump(exclude_unset=True)
+    
+    print(update_data)
+
+    if update_data:
+        # Ejecutar la actualización en la base de datos
+        stmt = sqlalchemy_update(cita).where(cita.c.id == id).values(update_data)
+        db.execute(stmt)
+        db.commit()
+
+    # Retornar los datos actualizados
+    updated_cita = db.query(cita).filter(cita.c.id == id).first()
+    return updated_cita
+
+
 @app.delete("/citas/")
 async def Citadelete(paciente_id: int = Query(..., description="ID del paciente"), db: Session = Depends(get_db)):
     # Fetch the cita to delete
@@ -105,6 +136,7 @@ async def Citadelete(paciente_id: int = Query(..., description="ID del paciente"
     try:
         # Delete the cita
         delete_query = delete(tablaCita).where(tablaCita.c.id == paciente_id)
+    
         db.execute(delete_query)
         db.commit()
     except Exception as e:
