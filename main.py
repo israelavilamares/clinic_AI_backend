@@ -94,7 +94,7 @@ def login(form_data: OAuth2PasswordRequestFormEmail = Depends(), db: Session = D
 
 @app.put("/citas/", response_model=CitaUser)
 async def updateCita(
-                   id: int = Query(..., description="ID citas"), 
+    id: int = Query(..., description="ID citas"), 
     request: UpdateCitaRequest = Body(...),
     db: Session = Depends(get_db)
 ):
@@ -106,14 +106,16 @@ async def updateCita(
     if not existing_cita:
         raise HTTPException(status_code=404, detail="Cita no encontrada")
 
-    # Obtener los datos a actualizar
-    update_data = request.model_dump(exclude_unset=True)
-    
-    print(update_data)
+    data = {}
+    if request.motivo and request.motivo.strip():  
+        data["motivo"] = request.motivo
+    if request.estado and request.estado.strip():  
+        data["estado"] = request.estado
+    print(data)
 
-    if update_data:
+    if data:
         # Ejecutar la actualización en la base de datos
-        stmt = sqlalchemy_update(cita).where(cita.c.id == id).values(update_data)
+        stmt = sqlalchemy_update(cita).where(cita.c.id == id).values(data)
         db.execute(stmt)
         db.commit()
 
