@@ -36,3 +36,31 @@ class CitaUser(BaseModel):
 class UpdateCitaRequest(BaseModel):
     motivo: Optional[str] = None
     estado: Optional[str] = None
+
+class Expe(BaseModel):
+    #puede faltar traer al id
+    nombre_paciente: str
+    telefono: str
+    cirugia: str
+    enfermedad: str
+    alergia: str
+    tratamientos: str
+    id_paciente: int
+
+class ExpedienteCreate(BaseModel):
+    
+    nombre_paciente:str | None = None
+    telefono: str | None = None
+    cirugia:str | None = None
+    enfermedad: str | None = None 
+    tratamientos: str | None = None  
+    alergia:str | None = None
+    id_paciente: int | None = None
+
+class PutexpCreate(BaseModel):
+    nombre_paciente:str | None = None
+    telefono: str | None = None
+    cirugia:str | None = None
+    enfermedad: str | None = None 
+    tratamientos: str | None = None  
+    alergia:str | None = None

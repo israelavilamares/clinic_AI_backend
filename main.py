@@ -6,13 +6,13 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Annotated
-from sqlalchemy import text, Table, select, delete ,update as sqlalchemy_update
+from sqlalchemy import column, insert, text, Table, select, delete ,update as sqlalchemy_update
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import NoResultFound
 import uvicorn
 from passwords import  hash_passwords, verify_password # retorna verify un resultado booleano 
 from database import SessionLocal ,Base, engine, metadata, get_db
-from models import reflect_tables, metadata,Cita,CitaUser,UpdateCitaRequest
+from models import PutexpCreate, reflect_tables, metadata,Cita,CitaUser,UpdateCitaRequest,Expe,ExpedienteCreate
 from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
 import logging
@@ -92,6 +92,41 @@ def login(form_data: OAuth2PasswordRequestFormEmail = Depends(), db: Session = D
     return {"access_token": access_token, "token_type": "bearer", "rol": rol,"id":user.id}
 
 
+@app.put("/expediente/{id_paciente}", response_model=Expe)
+async def update_exp(
+    id_paciente: int,
+    expediente_data: PutexpCreate,
+    db: Session = Depends(get_db)
+):
+    tbExp = metadata.tables["expediente"]
+    try:
+        # Buscar expediente
+        result = db.execute(
+            select("*")
+            .select_from(tbExp)
+            .where(tbExp.c.id_paciente == id_paciente)
+        ).mappings().first()
+
+        if not result:
+            raise HTTPException(status_code=404, detail="Expediente no encontrado")
+
+        # Actualizar
+        update_stmt = (
+            sqlalchemy_update(tbExp)
+            .where(tbExp.c.id_paciente == id_paciente)
+            .values(**expediente_data.model_dump())
+        )
+        
+        db.execute(update_stmt)
+        db.commit()
+
+        return {**result, **expediente_data.model_dump()}
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
+
+
 @app.put("/citas/", response_model=CitaUser)
 async def updateCita(
     id: int = Query(..., description="ID citas"), 
@@ -111,7 +146,7 @@ async def updateCita(
         data["motivo"] = request.motivo
     if request.estado and request.estado.strip():  
         data["estado"] = request.estado
-    print(data)
+    
 
     if data:
         # Ejecutar la actualización en la base de datos
@@ -144,8 +179,45 @@ async def Citadelete(paciente_id: int = Query(..., description="ID del paciente"
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error al eliminar la cita: {str(e)}")
-    return {"mensaje": "Cita eliminada correctamente"}
+    return {"ok": True}
 
+
+
+@app.get("/expediente/", response_model=List[Expe])
+async def getExpe(
+    id_paciente: int = Query(..., description="Id del paciente"),
+    db: Session = Depends(get_db)
+):
+    exp = metadata.tables["expediente"]
+    query = exp.select().where(exp.columns.id_paciente == id_paciente)
+    result = db.execute(query).fetchall()
+    if not result:
+        raise HTTPException(status_code=404, detail="No se encontraron citas del paciente.")
+
+    try:
+        # Versión simplificada y unificada de la consulta
+        result = db.execute(
+            select("*")
+            .select_from(text("expediente"))
+            .where(column("id_paciente") == id_paciente)
+        ).mappings().all()
+
+        if not result:
+            raise HTTPException(
+                status_code=404,
+                detail="Expediente médico vacío o no encontrado"  # Mensaje más claro
+            )
+        
+        return [Expe(**dict(item)) for item in result]
+
+    except HTTPException as he:
+        # Re-lanzamos la excepción HTTP específica
+        raise he
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error interno del servidor: {str(e)}"
+        )
 
 @app.get("/citas/")
 async def obtenerCita(paciente_id: int = Query(..., description="ID del paciente"), db: Session = Depends(get_db)):
@@ -153,7 +225,6 @@ async def obtenerCita(paciente_id: int = Query(..., description="ID del paciente
     try:
         tablaCita = metadata.tables["citas"]
 
-       
         query = tablaCita.select().where(tablaCita.columns.id_paciente == paciente_id)
         result = db.execute(query).fetchall()
        
@@ -169,7 +240,6 @@ async def obtenerCita(paciente_id: int = Query(..., description="ID del paciente
         raise HTTPException(status_code=500, detail=f"Error interno : {str(e)}")
 
     return citas
-
 
 class Paciente_(BaseModel):  
     id_paciente: int
@@ -265,7 +335,7 @@ def registerPac(paciente: Paciente, db: Session= Depends(get_db)):
 @app.post("/send/citas")
 def sendDataCitas(cita: Cita, db: Session= Depends(get_db)):
 
-    citaTabla = metadata.tables["citas"]; 
+    citaTabla = metadata.tables["citas"] 
 
     query = select(citaTabla).where((citaTabla.c.fecha == cita.fecha) & (citaTabla.c.hora == cita.hora))
     check = db.execute(query).fetchone()
@@ -290,6 +360,27 @@ def sendDataCitas(cita: Cita, db: Session= Depends(get_db)):
     return {"mensaje": "Paciente registrado exitosamente"}
 
 
+@app.post("/expediente/", response_model=ExpedienteCreate)
+async def create_exp(
+    expediente_data: ExpedienteCreate,
+    db: Session = Depends(get_db)
+):
+    try:
+        # Convertir usando alias
+        db_data = expediente_data.model_dump()
+        
+        stmt = insert(metadata.tables["expediente"]).values(**db_data).returning("*")
+        result = (db.execute(stmt)).mappings().first()
+        db.commit()
+        
+        return result
 
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Error interno: {str(e)}"
+        )
 
-
+if __name__=="__main__":
+    uvicorn.run("main:app",port=8000,reload=True)
