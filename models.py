@@ -24,6 +24,7 @@ class Cita(BaseModel):
     fecha: str
     hora: str
     motivo: str
+    id_medico: int
 
 class CitaUser(BaseModel):
     motivo: str
@@ -64,3 +65,7 @@ class PutexpCreate(BaseModel):
     enfermedad: str | None = None 
     tratamientos: str | None = None  
     alergia:str | None = None
+
+class medico(BaseModel):
+    id_medico: int | None = None
+    nombre: str | None = None

@@ -1,18 +1,18 @@
 from fastapi import FastAPI
-from fastapi import Form, Query, Body
+from fastapi import Form, Query, Body, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException,status,Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Annotated
-from sqlalchemy import column, insert, text, Table, select, delete ,update as sqlalchemy_update
+from sqlalchemy import column, insert, text, Table, select, delete ,update as sqlalchemy_update, join
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import NoResultFound
 import uvicorn
 from passwords import  hash_passwords, verify_password # retorna verify un resultado booleano 
 from database import SessionLocal ,Base, engine, metadata, get_db
-from models import PutexpCreate, reflect_tables, metadata,Cita,CitaUser,UpdateCitaRequest,Expe,ExpedienteCreate
+from models import PutexpCreate, reflect_tables, metadata,Cita,CitaUser,UpdateCitaRequest,Expe,ExpedienteCreate,medico
 from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
 import logging
@@ -42,6 +42,7 @@ SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 50
 
+router = APIRouter(prefix="/api/v1")
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
@@ -182,6 +183,25 @@ async def Citadelete(paciente_id: int = Query(..., description="ID del paciente"
     return {"ok": True}
 
 
+@app.get("/medicos/",response_model=list[medico])# add here schema
+async def getMedicos(
+    skip: int = 0,
+    limit: int = 100,
+    db : Session = Depends(get_db)):
+
+    medicos = metadata.tables["medico"]
+    try:
+        result = db.query(medicos).offset(skip).limit(limit).all()
+    except: 
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error interno al obtener los médicos")
+    finally:
+        db.close()
+    return result
+
+
 
 @app.get("/expediente/", response_model=List[Expe])
 async def getExpe(
@@ -224,8 +244,21 @@ async def obtenerCita(paciente_id: int = Query(..., description="ID del paciente
     
     try:
         tablaCita = metadata.tables["citas"]
+        tbMed = metadata.tables["medico"]
+        query = select(
+                        tablaCita.c.hora,
+                        tablaCita.c.fecha,
+                        tablaCita.c.motivo,
+                        tablaCita.c.id,
+                        tablaCita.c.estado,
+                        tbMed.c.nombre).select_from(join(
+                                tablaCita,
+                                tbMed,
+                                tablaCita.c.id_medico == tbMed.c.id_medico)).where(
+                                    tablaCita.columns.id_paciente == paciente_id)
+        
+        #where(tablaCita.columns.id_paciente == paciente_id)
 
-        query = tablaCita.select().where(tablaCita.columns.id_paciente == paciente_id)
         result = db.execute(query).fetchall()
        
         # Manejo de resultados vacíos
@@ -329,7 +362,7 @@ def registerPac(paciente: Paciente, db: Session= Depends(get_db)):
         db.rollback()
         raise HTTPException(status_code=500, detail="Error al registrar el paciente")
 
-    return {"mensaje": "Paciente registrado exitosamente"}
+    return {"okey": True}
 
 
 @app.post("/send/citas")
@@ -337,7 +370,7 @@ def sendDataCitas(cita: Cita, db: Session= Depends(get_db)):
 
     citaTabla = metadata.tables["citas"] 
 
-    query = select(citaTabla).where((citaTabla.c.fecha == cita.fecha) & (citaTabla.c.hora == cita.hora))
+    query = select(citaTabla).where((citaTabla.c.fecha == cita.fecha) & (citaTabla.c.hora == cita.hora)& (citaTabla.c.id_medico == cita.id_medico))
     check = db.execute(query).fetchone()
     
     if check:
@@ -348,7 +381,8 @@ def sendDataCitas(cita: Cita, db: Session= Depends(get_db)):
         id_paciente = cita.id_paciente,
         fecha = cita.fecha,
         hora = cita.hora,
-        motivo = cita.motivo
+        motivo = cita.motivo,
+        id_medico = cita.id_medico
     )
     try:
         db.execute(newCita)
