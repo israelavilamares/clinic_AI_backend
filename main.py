@@ -1,3 +1,5 @@
+import os
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi import Form, Query, Body, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
@@ -38,9 +40,9 @@ app.add_middleware(
 
 #SECRET_KEY = os.getenv()
 # Clave secreta para firmar el token
-SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 50
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
 
 router = APIRouter(prefix="/api/v1")
 
@@ -249,7 +251,7 @@ async def obtenerCita(paciente_id: int = Query(..., description="ID del paciente
                         tablaCita.c.hora,
                         tablaCita.c.fecha,
                         tablaCita.c.motivo,
-                        tablaCita.c.id,
+                        tablaCita.c.id,x|
                         tablaCita.c.estado,
                         tbMed.c.nombre).select_from(join(
                                 tablaCita,
