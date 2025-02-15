@@ -42,7 +42,7 @@ app.add_middleware(
 # Clave secreta para firmar el token
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
-ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
+ACCESS_TOKEN_EXPIRE_MINUTES = 50
 
 router = APIRouter(prefix="/api/v1")
 
@@ -251,7 +251,7 @@ async def obtenerCita(paciente_id: int = Query(..., description="ID del paciente
                         tablaCita.c.hora,
                         tablaCita.c.fecha,
                         tablaCita.c.motivo,
-                        tablaCita.c.id,x|
+                        tablaCita.c.id,
                         tablaCita.c.estado,
                         tbMed.c.nombre).select_from(join(
                                 tablaCita,
@@ -259,7 +259,6 @@ async def obtenerCita(paciente_id: int = Query(..., description="ID del paciente
                                 tablaCita.c.id_medico == tbMed.c.id_medico)).where(
                                     tablaCita.columns.id_paciente == paciente_id)
         
-        #where(tablaCita.columns.id_paciente == paciente_id)
 
         result = db.execute(query).fetchall()
        
