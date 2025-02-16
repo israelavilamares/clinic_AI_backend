@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from schemas.database import get_db
-from .schemas.schema import * 
+from schemas.schema import * 
 
 # Router específico para doctores SIN prefijo aquí
 router = APIRouter(tags=["Doctores"])  # Tags para documentación Swagger

@@ -52,8 +52,15 @@ class Expe(BaseModel):
     tratamientos: str
     id_paciente: int
 
+#es lo que tiene que devolver auth
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    rol:str
+    id: int
+
+
 class ExpedienteCreate(BaseModel):
-    
     nombre_paciente:str | None = None
     telefono: str | None = None
     cirugia:str | None = None
