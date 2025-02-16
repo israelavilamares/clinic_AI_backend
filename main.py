@@ -12,9 +12,10 @@ from sqlalchemy import column, insert, text, Table, select, delete ,update as sq
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import NoResultFound
 import uvicorn
-from passwords import  hash_passwords, verify_password # retorna verify un resultado booleano 
+import doctor
+from passwords import hash_passwords, verify_password # retorna verify un resultado booleano 
 from database import SessionLocal ,Base, engine, metadata, get_db
-from models import PutexpCreate, reflect_tables, metadata,Cita,CitaUser,UpdateCitaRequest,Expe,ExpedienteCreate,medico
+from schema import PutexpCreate, reflect_tables, metadata,Cita,CitaUser,UpdateCitaRequest,Expe,ExpedienteCreate,medico,Paciente_,UsuarioCreate,Paciente
 from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
 import logging
@@ -38,13 +39,19 @@ app.add_middleware(
     allow_headers=["*"],  # Permite todos los encabezados
 )
 
-#SECRET_KEY = os.getenv()
-# Clave secreta para firmar el token
+
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 50
 
-router = APIRouter(prefix="/api/v1")
+api_v1_router = APIRouter(prefix="/api/v1")
+
+# Incluir el router de doctores bajo el prefijo /api/v1
+api_v1_router.include_router(doctor.router)
+
+# Registrar el router principal en la app
+app.include_router(api_v1_router)
+
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
@@ -275,14 +282,7 @@ async def obtenerCita(paciente_id: int = Query(..., description="ID del paciente
 
     return citas
 
-class Paciente_(BaseModel):  
-    id_paciente: int
-#    fecha_naciemiento: datetime
-    sexo: str
-    direccion: str
-    is_delete: bool
-    nombre: str
-    tel: int
+
 
 @app.get("/pacientes/{id}/", response_model= List[Paciente_])
 async def users(id:int,db: Session = Depends(get_db))->list[Paciente_]:
@@ -307,10 +307,6 @@ async def users(id:int,db: Session = Depends(get_db))->list[Paciente_]:
         raise HTTPException(status_code=500, detail=f"Error interno : {str(e)}")
 
 
-class UsuarioCreate(BaseModel):
-    username:str
-    email: str
-    password: str
 
 # Endpoint para registrar un usuario
 @app.post("/register")
@@ -335,14 +331,6 @@ def registrar_usuario(usuario: UsuarioCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Error al registrar el usuario")
     return {"mensaje": "Usuario registrado exitosamente","user_id": user_id}
 
-
-class Paciente(BaseModel):
-    date: str
-    sexo: str
-    id_usuario : int  
-    address : str
-    name: str
-    tel: str
 
 
 @app.post("/register/paciente/registro2")
@@ -416,6 +404,8 @@ async def create_exp(
             status_code=500, 
             detail=f"Error interno: {str(e)}"
         )
+
+
 
 if __name__=="__main__":
     uvicorn.run("main:app",port=8000,reload=True)

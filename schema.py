@@ -1,4 +1,6 @@
 # models.py
+from h11 import Data
+from sqlalchemy import DATE
 from database import Base, engine, metadata
 from pydantic import BaseModel
 from typing import Optional
@@ -24,6 +26,8 @@ class Cita(BaseModel):
     fecha: str
     hora: str
     motivo: str
+    id: int
+    estado: str
     id_medico: int
 
 class CitaUser(BaseModel):
@@ -69,3 +73,24 @@ class PutexpCreate(BaseModel):
 class medico(BaseModel):
     id_medico: int | None = None
     nombre: str | None = None
+
+class Paciente_(BaseModel):  
+    id_paciente: int
+    sexo: str
+    direccion: str
+    is_delete: bool
+    nombre: str
+    tel: int
+
+class UsuarioCreate(BaseModel):
+    username:str
+    email: str
+    password: str
+
+class Paciente(BaseModel):
+    date: str
+    sexo: str
+    id_usuario : int  
+    address : str
+    name: str
+    tel: str                                    
