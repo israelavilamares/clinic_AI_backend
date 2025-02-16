@@ -14,8 +14,8 @@ from sqlalchemy.exc import NoResultFound
 import uvicorn
 import doctor
 from passwords import hash_passwords, verify_password # retorna verify un resultado booleano 
-from database import SessionLocal ,Base, engine, metadata, get_db
-from schema import PutexpCreate, reflect_tables, metadata,Cita,CitaUser,UpdateCitaRequest,Expe,ExpedienteCreate,medico,Paciente_,UsuarioCreate,Paciente
+from schemas.database import SessionLocal ,Base, engine, metadata, get_db
+from schemas.schema import PutexpCreate, reflect_tables, metadata,Cita,CitaUser,UpdateCitaRequest,Expe,ExpedienteCreate,medico,Paciente_,UsuarioCreate,Paciente
 from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
 import logging

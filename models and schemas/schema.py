@@ -1,7 +1,7 @@
 # models.py
 from h11 import Data
 from sqlalchemy import DATE
-from database import Base, engine, metadata
+from schemas.database import Base, engine, metadata
 from pydantic import BaseModel
 from typing import Optional
 
