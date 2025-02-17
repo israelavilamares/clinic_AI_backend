@@ -6,7 +6,9 @@ from sqlalchemy.exc import NoResultFound
 from typing import List
 from schemas.database import SessionLocal ,Base, engine, metadata, get_db
 from schemas.schema import PutexpCreate, reflect_tables, metadata,Cita,CitaUser,UpdateCitaRequest,Expe,ExpedienteCreate,medico,Paciente_,UsuarioCreate,Paciente
-
+#import logging
+#logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
+#logger = logging.getLogger(__name__)
 router = APIRouter(tags=["Pacientes"])
 
 
@@ -213,10 +215,6 @@ async def users(id:int,db: Session = Depends(get_db))->list[Paciente_]:
         return pacientes
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error interno : {str(e)}")
-
-
-
-
 
 
 @router.post("/register/paciente/registro2")
