@@ -48,11 +48,7 @@ async def update_exp(
 
 
 @router.put("/citas/", response_model=CitaUser)
-async def updateCita(
-    id: int = Query(..., description="ID citas"), 
-    request: UpdateCitaRequest = Body(...),
-    db: Session = Depends(get_db)
-):
+async def updateCita( id: int = Query(..., description="ID citas"), request: UpdateCitaRequest = Body(...),db: Session = Depends(get_db)):
     cita = metadata.tables["citas"]
     print(id)
 
@@ -70,7 +66,7 @@ async def updateCita(
 
     if data:
         # Ejecutar la actualización en la base de datos
-        stmt = sqlalchemy_update(cita).where(cita.c.id == id).values(data)
+        stmt = sqlalchemy_update(cita).where(cita.c.id == id).values(data) 
         db.execute(stmt)
         db.commit()
 
@@ -101,8 +97,7 @@ async def Citadelete(paciente_id: int = Query(..., description="ID del paciente"
         raise HTTPException(status_code=500, detail=f"Error al eliminar la cita: {str(e)}")
     return {"ok": True}
 
-
-@router.get("/medicos/",response_model=list[medico])# add here schema
+@router.get("/medicos/",response_model=list[medico])
 async def getMedicos(
     skip: int = 0,
     limit: int = 100,
@@ -123,16 +118,12 @@ async def getMedicos(
 
 
 @router.get("/expediente/", response_model=List[Expe])
-async def getExpe(
-    id_paciente: int = Query(..., description="Id del paciente"),
-    db: Session = Depends(get_db)
-):
+async def getExpe(id_paciente: int = Query(..., description="Id del paciente"), db: Session = Depends(get_db)):
     exp = metadata.tables["expediente"]
     query = exp.select().where(exp.columns.id_paciente == id_paciente)
     result = db.execute(query).fetchall()
     if not result:
         raise HTTPException(status_code=404, detail="No se encontraron citas del paciente.")
-
     try:
         # Versión simplificada y unificada de la consulta
         result = db.execute(
@@ -160,7 +151,6 @@ async def getExpe(
 
 @router.get("/citas/")
 async def obtenerCita(paciente_id: int = Query(..., description="ID del paciente"), db: Session = Depends(get_db)):
-    
     try:
         tablaCita = metadata.tables["citas"]
         tbMed = metadata.tables["medico"]
@@ -173,26 +163,16 @@ async def obtenerCita(paciente_id: int = Query(..., description="ID del paciente
                         tbMed.c.nombre).select_from(join(
                                 tablaCita,
                                 tbMed,
-                                tablaCita.c.id_medico == tbMed.c.id_medico)).where(
-                                    tablaCita.columns.id_paciente == paciente_id)
-        
-
+                                tablaCita.c.id_medico == tbMed.c.id_medico)).where(tablaCita.columns.id_paciente == paciente_id)
         result = db.execute(query).fetchall()
-       
         # Manejo de resultados vacíos
         if not result:
             raise HTTPException(status_code=404, detail="No se encontraron citas del paciente.")
-
-        # Transformar las filas en objetos Pydantic
-         # Transformar los resultados en una lista compatible con Pydantic
       # Convertir a una lista de diccionarios
         citas = [dict(row._mapping) for row in result]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error interno : {str(e)}")
-
     return citas
-
-
 
 @router.get("/pacientes/{id}/", response_model= List[Paciente_])
 async def users(id:int,db: Session = Depends(get_db))->list[Paciente_]:
@@ -202,24 +182,18 @@ async def users(id:int,db: Session = Depends(get_db))->list[Paciente_]:
         # Create and execute the query
         query = select(pacientes_table).where(pacientes_table.c.id_usuario == id)
         result = db.execute(query).fetchall()
-       
         # Manejo de resultados vacíos
         if not result:
             raise HTTPException(status_code=404, detail="No se encontraron pacientes.")
 
-        # Transformar las filas en objetos Pydantic
-         # Transformar los resultados en una lista compatible con Pydantic
       # Convertir a una lista de diccionarios
         pacientes = [dict(row._mapping) for row in result]
-
         return pacientes
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error interno : {str(e)}")
 
-
 @router.post("/register/paciente/registro2")
 def registerPac(paciente: Paciente, db: Session= Depends(get_db)):
-
     nuevo_paciente = metadata.tables["pacientes"].insert().values(
         fecha_nacimiento=paciente.date,
         sexo=paciente.sexo,
@@ -237,19 +211,12 @@ def registerPac(paciente: Paciente, db: Session= Depends(get_db)):
 
     return {"okey": True}
 
-
 @router.post("/send/citas")
 def sendDataCitas(cita: Cita, db: Session= Depends(get_db)):
-
     citaTabla = metadata.tables["citas"] 
-
     query = select(citaTabla).where((citaTabla.c.fecha == cita.fecha) & (citaTabla.c.hora == cita.hora)& (citaTabla.c.id_medico == cita.id_medico))
-    check = db.execute(query).fetchone()
-    
-    if check:
-        raise HTTPException(status_code=400,detail=" Ya esta Registrado esa Fecha y Hora")
-
-
+    check = db.execute(query).fetchone()    
+    if check: raise HTTPException(status_code=400,detail=" Ya esta Registrado esa Fecha y Hora")
     newCita = metadata.tables["citas"].insert().values(
         id_paciente = cita.id_paciente,
         fecha = cita.fecha,
@@ -263,9 +230,7 @@ def sendDataCitas(cita: Cita, db: Session= Depends(get_db)):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500,detail=f"Error al Registrar la Cita : {str(e)}")
-
-    return {"mensaje": "Paciente registrado exitosamente"}
-
+    return {"okey": True}
 
 @router.post("/expediente/", response_model=ExpedienteCreate)
 async def create_exp(
@@ -288,4 +253,3 @@ async def create_exp(
             status_code=500, 
             detail=f"Error interno: {str(e)}"
         )
-

@@ -26,8 +26,8 @@ class Cita(BaseModel):
     fecha: str
     hora: str
     motivo: str
-    id: int
-    estado: str
+   # id: int
+  #  estado: str
     id_medico: int
 
 class CitaUser(BaseModel):
