@@ -28,6 +28,5 @@ app.include_router(auth.router)
 app.include_router(paciente.router)
 app.include_router(doctor.router)# ,prefix="/doctor")
 
-
 if __name__=="__main__":
     uvicorn.run("main:app",port=8000,reload=True)
