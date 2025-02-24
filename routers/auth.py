@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from fastapi import Form, HTTPException,status,Depends, APIRouter
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
 from jose import JWTError, jwt
@@ -15,6 +15,10 @@ router = APIRouter(tags=["Autenticación"])
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 50
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):

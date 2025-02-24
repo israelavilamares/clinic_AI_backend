@@ -20,6 +20,24 @@ def reflect_tables():
 # Llamar a la función de reflección se ven todas las tablas[pacientes,medicos,usuarios]
 reflect_tables()
 
+class meDoctor(BaseModel):
+  
+    especialidad :str | None = None
+    cedula_profesional: str | None = None
+    telefono_contacto: str | None = None
+    id_usuario:int  | None = None
+    is_delete: bool | None = None
+    nombre: str | None = None
+
+
+class CitaD(BaseModel):
+    id_paciente: int
+    fecha: str
+    hora: str
+    motivo: str
+    id: int
+    estado: str
+    id_medico: int
 
 class Cita(BaseModel):
     id_paciente: int
