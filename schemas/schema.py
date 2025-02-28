@@ -20,8 +20,8 @@ def reflect_tables():
 # Llamar a la función de reflección se ven todas las tablas[pacientes,medicos,usuarios]
 reflect_tables()
 
+
 class meDoctor(BaseModel):
-  
     especialidad :str | None = None
     cedula_profesional: str | None = None
     telefono_contacto: str | None = None

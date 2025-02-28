@@ -7,5 +7,3 @@ def hash_passwords(password:str)->str:
 
 def verify_password(plain_password:str, hash_password:str)->bool:
     return bcrypt.checkpw(plain_password.encode('utf-8'),hash_password.encode('utf-8'))
-
-#print(verify_password("123","$2b$12$GaxMg5oJdUXQmHxq13z31.kh2N7p2TcitcvzIKJgoZYb6TkW3SOFy"))
