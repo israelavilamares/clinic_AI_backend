@@ -16,6 +16,7 @@ def medicos(skip:int=0,limit=100,db: Session = Depends(get_db)):#add verificacio
     )).offset(skip).limit(limit).all()
     except:raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error interno al obtener los médicos")
     finally:db.close()
+    if not query:raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No hay médicos registrados")
     return query
 
 @router.put('/')
