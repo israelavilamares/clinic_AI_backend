@@ -6,8 +6,6 @@ from sqlalchemy.orm import Session
 
 router = APIRouter(tags=["administradores"])
 
-
-
 @router.get('/doctor',response_model=list[meDoctor])# here to need to return everyone doctors exist
 def getMedicos(skip:int=0,limit=100,db: Session = Depends(get_db)):#add verificacion si es true todavia existe
     doc = metadata.tables["medico"]
