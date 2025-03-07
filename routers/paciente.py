@@ -1,4 +1,3 @@
-# Arquivo de rotas para o CRUD de pacientes
 from fastapi import HTTPException,status,Depends, APIRouter, Query, Body
 from sqlalchemy import column, insert, text, Table, select, delete ,update as sqlalchemy_update, join
 from sqlalchemy.orm import Session
@@ -6,11 +5,7 @@ from sqlalchemy.exc import NoResultFound
 from typing import List
 from schemas.database import SessionLocal ,Base, engine, metadata, get_db
 from schemas.schema import PutexpCreate, reflect_tables, metadata,Cita,CitaUser,UpdateCitaRequest,Expe,ExpedienteCreate,medico,Paciente_,UsuarioCreate,Paciente
-#import logging
-#logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
-#logger = logging.getLogger(__name__)
 router = APIRouter(tags=["Pacientes"])
-
 
 @router.put("/expediente/{id_paciente}", response_model=Expe)
 async def update_exp(
@@ -244,12 +239,11 @@ async def create_exp(
         stmt = insert(metadata.tables["expediente"]).values(**db_data).returning("*")
         result = (db.execute(stmt)).mappings().first()
         db.commit()
-        
         return result
-
     except Exception as e:
         db.rollback()
         raise HTTPException(
             status_code=500, 
             detail=f"Error interno: {str(e)}"
         )
+    

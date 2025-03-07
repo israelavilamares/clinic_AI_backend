@@ -9,7 +9,7 @@ router = APIRouter(tags=["administradores"])
 
 
 @router.get('/doctor',response_model=list[meDoctor])# here to need to return everyone doctors exist
-def medicos(skip:int=0,limit=100,db: Session = Depends(get_db)):#add verificacion si es true todavia existe
+def getMedicos(skip:int=0,limit=100,db: Session = Depends(get_db)):#add verificacion si es true todavia existe
     doc = metadata.tables["medico"]
     try:query = db.query(doc).filter(or_(
         doc.c.is_delete == False,
@@ -29,7 +29,7 @@ def editMedico(id:int,db: Session = Depends(get_db)):
 
 @router.post('/doctor',response_model=meDoctor)
 #Newdoctor es el objeto que tiene los datos para mandar
-def medico(Newdoctor:meDoctor,db: Session = Depends(get_db)):
+def Postmedico(Newdoctor:meDoctor,db: Session = Depends(get_db)):
     try: 
         data = Newdoctor.model_dump()
         stmt = insert(metadata.tables["medico"]).values(**data).returning("*")
@@ -41,3 +41,8 @@ def medico(Newdoctor:meDoctor,db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error at add doctor")
 
+#----------------------------------------------------------------#
+#
+#necesito una funcion para agregar un usuario primero antes que un doctor
+#
+#----------------------------------------------------------------#

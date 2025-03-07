@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-from routers import auth,paciente,doctor,adm
+from routers import auth,paciente,doctor,adm,ia
 
 app= FastAPI()
 
@@ -26,6 +26,8 @@ app.include_router(auth.router)
 app.include_router(paciente.router)
 app.include_router(doctor.router, prefix="/doctor")
 app.include_router(adm.router, prefix="/adm")
+app.include_router(ia.router, prefix="/ia")
+
 
 
 if __name__=="__main__":
