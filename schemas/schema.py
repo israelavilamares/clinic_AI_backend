@@ -21,6 +21,12 @@ def reflect_tables():
 reflect_tables()
 
 
+class User(BaseModel):
+    username: str
+    email: str
+    rol:str = "doctor"
+    password: str
+
 class meDoctor(BaseModel):
     especialidad :str | None = None
     cedula_profesional: str | None = None
@@ -28,7 +34,6 @@ class meDoctor(BaseModel):
     id_usuario:int  | None = None
     is_delete: bool | None = None
     nombre: str | None = None
-
 
 class CitaD(BaseModel):
     id_paciente: int

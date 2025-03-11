@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends,HTTPException, status
 from schemas.database import get_db, metadata
-from schemas.schema import meDoctor
+from schemas.schema import meDoctor, User
 from sqlalchemy import  or_, insert
 from sqlalchemy.orm import Session
+from services.auth_hash import hash_passwords
 
 router = APIRouter(tags=["administradores"])
 
@@ -44,3 +45,27 @@ def Postmedico(Newdoctor:meDoctor,db: Session = Depends(get_db)):
 #necesito una funcion para agregar un usuario primero antes que un doctor
 #
 #----------------------------------------------------------------#
+@router.post('/usuario/doctores')
+# Endpoint para registrar un usuario
+@router.post("/register")
+def registrar_usuario(usuario: User, db: Session = Depends(get_db)):
+
+    usuario_existente = db.query(metadata.tables["usuario"]).filter_by(email=usuario.email).first()
+    if usuario_existente:
+       raise HTTPException(status_code=400, detail="El email ya existe")
+    # Insertar el nuevo usuario
+    hashed_password = hash_passwords(usuario.password)
+    nuevo_usuario = metadata.tables["usuario"].insert().values(
+        username=usuario.username, 
+        email=usuario.email,
+        rol=usuario.rol,
+        password=hashed_password,
+    )
+    try:
+        result = db.execute(nuevo_usuario)
+        db.commit()
+        user_id = result.inserted_primary_key[0]
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Error al registrar el usuario") 
+    return {"okey add": True, "user_id": user_id}   
