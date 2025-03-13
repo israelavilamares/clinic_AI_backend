@@ -19,7 +19,7 @@ async def getCitas(id : int, db: Session = Depends(get_db)):
     if r == []: raise HTTPException(status_code=404, detail="No se encontraron doctores.")
     return r
 
-@router.get("/me/{id}",response_model=meDoctor) # aqui solo necesitamos un solo objeto y no una lista de objetos
+@router.get("/yo/{id}",response_model=meDoctor) # aqui solo necesitamos un solo objeto y no una lista de objetos
 async def getMe(id:int, db: Session = Depends(get_db)):
     
     tbMed = metadata.tables["medico"]

@@ -206,7 +206,7 @@ def registerPac(paciente: Paciente, db: Session= Depends(get_db)):
 
     return {"okey": True}
 
-@router.post("/send/citas")
+@router.post("/enviar/citas")
 def sendDataCitas(cita: Cita, db: Session= Depends(get_db)):
     citaTabla = metadata.tables["citas"] 
     query = select(citaTabla).where((citaTabla.c.fecha == cita.fecha) & (citaTabla.c.hora == cita.hora)& (citaTabla.c.id_medico == cita.id_medico))

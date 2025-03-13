@@ -47,7 +47,7 @@ def Postmedico(Newdoctor:meDoctor,db: Session = Depends(get_db)):
 #----------------------------------------------------------------#
 @router.post('/usuario/doctores')
 # Endpoint para registrar un usuario
-@router.post("/register")
+@router.post("/registro")
 def registrar_usuario(usuario: User, db: Session = Depends(get_db)):
 
     usuario_existente = db.query(metadata.tables["usuario"]).filter_by(email=usuario.email).first()
