@@ -18,9 +18,6 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 50
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-
-
-
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     if expires_delta:
@@ -85,3 +82,11 @@ def registrar_usuario(usuario: UsuarioCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Error al registrar el usuario")
     return {"mensaje": "Usuario registrado exitosamente","user_id": user_id}
 
+@router.post("/olvidar-password")
+def forgetPassword(email: str, db: Session = Depends(get_db)):
+    user = db.query(metadata.tables["usuario"]).filter_by(email=email).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="El email no existe")
+    # Enviar email con el link para cambiar la contraseña
+
+    return {"mensaje": "Email enviado con éxito"}

@@ -1,4 +1,5 @@
 # models.py
+from dataclasses import field
 from h11 import Data
 from sqlalchemy import DATE
 from schemas.database import Base, engine, metadata
@@ -24,7 +25,7 @@ reflect_tables()
 class User(BaseModel):
     username: str
     email: str
-    rol:str = "doctor"
+    rol:str = field(default="doctor")
     password: str
 
 class meDoctor(BaseModel):
